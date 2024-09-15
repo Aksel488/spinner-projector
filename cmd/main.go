@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -14,7 +15,6 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
 )
 
@@ -34,7 +34,9 @@ func main() {
 }
 
 func run(window *app.Window) error {
-	// theme := material.NewTheme()
+	theme := material.NewTheme()
+	windowState := NewState()
+
 	var ops op.Ops
 	for {
 		switch e := window.Event().(type) {
@@ -43,10 +45,16 @@ func run(window *app.Window) error {
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
 
-			// welcomeText(gtx, theme)
-			draw(gtx.Ops)
+			// update functions
+			windowState.update()
 
+			// draw functions
+			draw(gtx.Ops)
+			windowState.draw(gtx, theme)
+
+			// draw the window and trigger redraw
 			e.Frame(gtx.Ops)
+			window.Invalidate()
 		}
 	}
 }
@@ -60,10 +68,10 @@ func welcomeText(gtx layout.Context, theme *material.Theme) {
 }
 
 func draw(ops *op.Ops) {
-	white := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+	// white := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 	// purple := color.NRGBA{R: 54, G: 1, B: 64, A: 255}
-	paint.ColorOp{Color: white}.Add(ops)
-	paint.PaintOp{}.Add(ops)
+	// paint.ColorOp{Color: white}.Add(ops)
+	// paint.PaintOp{}.Add(ops)
 
 	offsetRect(ops)
 	line(ops, f32.Point{X: 0, Y: 0}, f32.Point{X: 400, Y: 200}, 4, color.NRGBA{R: 0, G: 0, B: 255, A: 255})
@@ -122,7 +130,43 @@ func strokeTriangle(ops *op.Ops) {
 }
 
 type state struct {
-	btn widget.Clickable
+	fpsTimer      time.Time
+	countedFrames int
+	fpsText       string
+}
 
-	time time.Time
+func NewState() state {
+	return state{
+		fpsTimer:      time.Now(),
+		countedFrames: 0,
+		fpsText:       "",
+	}
+}
+
+func (s *state) update() {
+	secounds := time.Since(s.fpsTimer).Seconds()
+	if secounds > 0.5 {
+		avgFPS := float64(s.countedFrames) / secounds
+		if avgFPS > 2000000 {
+			avgFPS = 0
+		}
+
+		s.fpsText = fmt.Sprintf("%.0f FPS", avgFPS)
+		s.fpsTimer = time.Now()
+		s.countedFrames = 0
+	}
+	s.countedFrames++
+}
+
+func (s *state) draw(gtx layout.Context, theme *material.Theme) {
+	fpsText := s.fpsText
+	if fpsText == "" {
+		fpsText = "FPS: --.--"
+	}
+
+	fpsDisplayText := material.H5(theme, fpsText)
+	fpsDisplayText.Color = color.NRGBA{G: 200, A: 255}
+	// fpsDisplayText.Alignment = text.Middle
+	fpsDisplayText.Alignment = text.End
+	fpsDisplayText.Layout(gtx)
 }
