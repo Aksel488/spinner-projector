@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"spinner-projector/models"
 	"time"
 
 	"gioui.org/app"
@@ -36,6 +37,7 @@ func main() {
 func run(window *app.Window) error {
 	theme := material.NewTheme()
 	windowState := NewState()
+	balls := models.NewBalls(50)
 
 	var ops op.Ops
 	for {
@@ -44,12 +46,14 @@ func run(window *app.Window) error {
 			return e.Err
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
-
+			dt := time.Since(windowState.frameDraw).Seconds()
 			// update functions
 			windowState.update()
+			balls.Update(dt, gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 
 			// draw functions
 			draw(gtx.Ops)
+			balls.Draw(gtx.Ops)
 			windowState.draw(gtx, theme)
 
 			// draw the window and trigger redraw
@@ -69,13 +73,13 @@ func welcomeText(gtx layout.Context, theme *material.Theme) {
 
 func draw(ops *op.Ops) {
 	// white := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-	// purple := color.NRGBA{R: 54, G: 1, B: 64, A: 255}
-	// paint.ColorOp{Color: white}.Add(ops)
-	// paint.PaintOp{}.Add(ops)
+	purple := color.NRGBA{R: 54, G: 1, B: 64, A: 255}
+	paint.ColorOp{Color: purple}.Add(ops)
+	paint.PaintOp{}.Add(ops)
 
-	offsetRect(ops)
-	line(ops, f32.Point{X: 0, Y: 0}, f32.Point{X: 400, Y: 200}, 4, color.NRGBA{R: 0, G: 0, B: 255, A: 255})
-	strokeTriangle(ops)
+	// offsetRect(ops)
+	// line(ops, f32.Point{X: 0, Y: 0}, f32.Point{X: 400, Y: 200}, 4, color.NRGBA{R: 0, G: 0, B: 255, A: 255})
+	// strokeTriangle(ops)
 	// redButtonBackground(ops)
 }
 
@@ -130,6 +134,7 @@ func strokeTriangle(ops *op.Ops) {
 }
 
 type state struct {
+	frameDraw     time.Time
 	fpsTimer      time.Time
 	countedFrames int
 	fpsText       string
@@ -137,6 +142,7 @@ type state struct {
 
 func NewState() state {
 	return state{
+		frameDraw:     time.Now(),
 		fpsTimer:      time.Now(),
 		countedFrames: 0,
 		fpsText:       "",
@@ -156,6 +162,7 @@ func (s *state) update() {
 		s.countedFrames = 0
 	}
 	s.countedFrames++
+	s.frameDraw = time.Now()
 }
 
 func (s *state) draw(gtx layout.Context, theme *material.Theme) {
