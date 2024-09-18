@@ -6,7 +6,9 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"spinner-projector/events"
 	"spinner-projector/models"
+	"spinner-projector/ui"
 	"time"
 
 	"gioui.org/app"
@@ -23,7 +25,9 @@ func main() {
 	go func() {
 		window := new(app.Window)
 
-		err := run(window)
+		// err := run(window)
+		err := runApplication(window)
+
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -32,6 +36,35 @@ func main() {
 	}()
 
 	app.Main()
+}
+
+func runApplication(window *app.Window) error {
+	theme := material.NewTheme()
+	windowState := NewState()
+	application := models.NewApplication()
+
+	var ops op.Ops
+	for {
+		switch e := window.Event().(type) {
+		case app.DestroyEvent:
+			return e.Err
+		case app.FrameEvent:
+			gtx := app.NewContext(&ops, e)
+
+			// get time since last drawn frame, reset last drawn frame time
+			dt := time.Since(windowState.frameDraw).Seconds()
+			windowState.update()
+
+			application.Draw(gtx, dt)
+
+			// update functions
+			windowState.draw(gtx, theme)
+
+			// draw the window and trigger redraw
+			e.Frame(gtx.Ops)
+			window.Invalidate()
+		}
+	}
 }
 
 func run(window *app.Window) error {
@@ -47,14 +80,19 @@ func run(window *app.Window) error {
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
 			dt := time.Since(windowState.frameDraw).Seconds()
-			// update functions
 			windowState.update()
+
+			// update functions
 			balls.Update(dt, gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 
 			// draw functions
 			draw(gtx.Ops)
 			balls.Draw(gtx.Ops)
 			windowState.draw(gtx, theme)
+
+			// handle events from pointer and keyboard
+			events.PointerEvent(gtx)
+			events.KeyEvent(gtx)
 
 			// draw the window and trigger redraw
 			e.Frame(gtx.Ops)
@@ -72,9 +110,7 @@ func welcomeText(gtx layout.Context, theme *material.Theme) {
 }
 
 func draw(ops *op.Ops) {
-	// white := color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-	purple := color.NRGBA{R: 54, G: 1, B: 64, A: 255}
-	paint.ColorOp{Color: purple}.Add(ops)
+	paint.ColorOp{Color: ui.Purple}.Add(ops)
 	paint.PaintOp{}.Add(ops)
 
 	// offsetRect(ops)
@@ -85,7 +121,7 @@ func draw(ops *op.Ops) {
 
 func rect(ops *op.Ops) {
 	defer clip.Rect{Max: image.Pt(200, 100)}.Push(ops).Pop()
-	paint.ColorOp{Color: color.NRGBA{R: 255, G: 0, B: 0, A: 255}}.Add(ops)
+	paint.ColorOp{Color: ui.Red}.Add(ops)
 	paint.PaintOp{}.Add(ops)
 }
 

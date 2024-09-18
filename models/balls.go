@@ -10,6 +10,7 @@ import (
 	"gioui.org/op/paint"
 )
 
+// /////////// BALLS /////////////
 type balls struct {
 	Balls []*ball
 }
@@ -26,6 +27,17 @@ func NewBalls(n int) balls {
 	return b
 }
 
+func (b *balls) AddBall() {
+	b.Balls = append(b.Balls, NewBall())
+}
+
+func (b *balls) RemoveBall() {
+	if len(b.Balls) == 0 {
+		return
+	}
+	b.Balls = b.Balls[:len(b.Balls)-1]
+}
+
 func (b *balls) Update(dt float64, maxX, maxY int) {
 	for _, ball := range b.Balls {
 		ball.Update(dt, maxX, maxY)
@@ -38,6 +50,7 @@ func (b *balls) Draw(ops *op.Ops) {
 	}
 }
 
+// /////////// BALL /////////////
 type ball struct {
 	px, py float64
 	r      int
