@@ -2,9 +2,13 @@ package models
 
 import (
 	"image"
+	"image/color"
 	"spinner-projector/ui"
 
 	"gioui.org/layout"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
+	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 )
@@ -25,14 +29,14 @@ func NewApplication() *Application {
 			btn:      &widget.Clickable{},
 		},
 		{
-			Name:     "File 2",
+			Name:     "blue",
 			Selected: false,
 			Content:  NewColorBox(ui.Blue),
 			btn:      &widget.Clickable{},
 		},
 		{
-			Name:     "File 3",
-			Selected: true,
+			Name:     "example",
+			Selected: false,
 			Content:  NewColorBox(ui.Black),
 			btn:      &widget.Clickable{},
 		},
@@ -45,38 +49,113 @@ func NewApplication() *Application {
 	}
 }
 
+func menuWidget(gtx layout.Context) layout.Dimensions {
+	// Center the box widget inside both horizontal and vertical layout
+	return layout.Flex{
+		Axis:      layout.Vertical,
+		Alignment: layout.Middle, // Center vertically
+	}.Layout(gtx,
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			// box := layout.Dimensions{Size: gtx.Constraints.Max}
+			return layout.Flex{
+				Axis:      layout.Horizontal,
+				Alignment: layout.Middle, // Center horizontally
+			}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					// align := layout.Alignment(layout.Middle)
+					// return align.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					// 	return boxWidget(gtx)
+					// })
+					return boxWidget(gtx)
+				}),
+			)
+		}),
+	)
+}
+
+func boxWidget(gtx layout.Context) layout.Dimensions {
+	// Create a vertical list for the boxes
+
+	colors := []color.NRGBA{
+		{R: 255, G: 0, B: 0, A: 255},
+		{R: 0, G: 255, B: 0, A: 255},
+		{R: 0, G: 0, B: 255, A: 255},
+	}
+
+	boxList := layout.List{Axis: layout.Vertical}
+	return boxList.Layout(gtx, len(colors), func(gtx layout.Context, i int) layout.Dimensions {
+		boxSize := unit.Dp(100)
+
+		defer clip.Rect{Max: image.Pt(100, 100)}.Push(gtx.Ops).Pop()
+		paint.ColorOp{Color: colors[i]}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
+
+		return layout.Dimensions{
+			Size: image.Pt(int(boxSize), int(boxSize)),
+		}
+	})
+}
+
 func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dimensions {
+	// menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+	// 	return application.menu[0].Content.Draw(gtx, image.Pt(200, gtx.Constraints.Max.Y))
+	// })
+
 	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		return application.menu[0].Content.Draw(gtx, image.Pt(200, gtx.Constraints.Max.Y))
+		return menuWidget(gtx)
+		// btnHolder := layout.Dimensions{Size: image.Pt(200, gtx.Constraints.Max.Y)}
+		// return btnHolder
 	})
 
 	// menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-	// 	leftSide := layout.Flex{
-	// 		Axis:      layout.Vertical,
-	// 		Alignment: layout.Middle,
-	// 	}.Layout(gtx, func(gtx layout.Context) layout.FlexChild {
+	// 	btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
 
-	// 		return layout.Flexed(gtx, func(gtx layout.Context) layout.Dimensions {
-	// 			asd := layout.List{Axis: layout.Vertical}
-	// 			return asd.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
-	// 				item := &application.menu[i]
-	// 				btn := material.Button(application.theme, item.btn, item.Name).Layout(gtx)
-	// 				if item.btn.Pressed() {
-	// 					fmt.Println("cliked happen sad", item.btn)
-	// 					item.Selected = true
-	// 					for j := range application.menu {
-	// 						if i != j {
-	// 							application.menu[j].Selected = false
-	// 						}
-	// 					}
+	// 	btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
+	// 		menuItem := &application.menu[i]
+	// 		btn := material.Button(application.theme, menuItem.btn, menuItem.Name)
+
+	// 		if menuItem.btn.Pressed() {
+	// 			fmt.Println("cliked happen", menuItem.btn)
+	// 			menuItem.Selected = true
+	// 			for j := range application.menu {
+	// 				if i != j {
+	// 					application.menu[j].Selected = false
 	// 				}
-	// 				return btn
-	// 			})
-	// 		})
-	// 		return alks
+	// 			}
+	// 		}
+
+	// 		btn.Inset = layout.Inset{
+	// 			Top:    10,
+	// 			Bottom: 10,
+	// 			Left:   40,
+	// 			Right:  40,
+	// 		}
+
+	// 		border := widget.Border{
+	// 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+	// 			CornerRadius: unit.Dp(0),
+	// 			Width:        unit.Dp(1),
+	// 		}
+
+	// 		// Center the button, apply the border and layout the button
+	// 		return layout.Flex{
+	// 			Axis:      layout.Horizontal,
+	// 			Spacing:   layout.SpaceAround,
+	// 			Alignment: layout.Middle,
+	// 		}.Layout(gtx,
+	// 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+	// 				return border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+
+	// 					btnLayout := btn.Layout(gtx)
+	// 					btnLayout.Size = image.Pt(150, 50)
+	// 					return btnLayout
+	// 				})
+	// 			}),
+	// 		)
 	// 	})
-	// 	leftSide.Size = image.Pt(200, gtx.Constraints.Max.Y)
-	// 	return leftSide
+
+	// 	btnHolder := layout.Dimensions{Size: image.Pt(200, gtx.Constraints.Max.Y)}
+	// 	return btnHolder
 	// })
 
 	contentWidget := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {

@@ -24,10 +24,10 @@ import (
 func main() {
 	go func() {
 		window := new(app.Window)
+		window.Option(app.Size(1200, 800))
 
 		// err := run(window)
 		err := runApplication(window)
-
 		if err != nil {
 			log.Fatal(err)
 		}
