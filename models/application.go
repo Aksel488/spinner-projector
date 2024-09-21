@@ -24,9 +24,21 @@ type Application struct {
 func NewApplication() *Application {
 	menu := []ManuItem{
 		{
-			Name:     "File 1",
+			Name:     "ball flinger",
 			Selected: true,
+			Content:  NewBalls(10),
+			btn:      &widget.Clickable{},
+		},
+		{
+			Name:     "Red",
+			Selected: false,
 			Content:  NewColorBox(ui.Red),
+			btn:      &widget.Clickable{},
+		},
+		{
+			Name:     "Purple",
+			Selected: false,
+			Content:  NewColorBox(ui.Purple),
 			btn:      &widget.Clickable{},
 		},
 		{
@@ -36,13 +48,13 @@ func NewApplication() *Application {
 			btn:      &widget.Clickable{},
 		},
 		{
-			Name:     "example",
+			Name:     "example 40",
 			Selected: false,
 			Content:  NewBalls(40),
 			btn:      &widget.Clickable{},
 		},
 		{
-			Name:     "example",
+			Name:     "example 2",
 			Selected: false,
 			Content:  NewBalls(2),
 			btn:      &widget.Clickable{},
@@ -120,6 +132,13 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 	// })
 
 	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		size := image.Pt(200, gtx.Constraints.Max.Y)
+		btnHolder := layout.Dimensions{Size: size}
+
+		defer clip.Rect{Max: size}.Push(gtx.Ops).Pop()
+		paint.ColorOp{Color: ui.Purple}.Add(gtx.Ops)
+		paint.PaintOp{}.Add(gtx.Ops)
+
 		btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
 
 		btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
@@ -166,7 +185,6 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 			)
 		})
 
-		btnHolder := layout.Dimensions{Size: image.Pt(200, gtx.Constraints.Max.Y)}
 		return btnHolder
 	})
 

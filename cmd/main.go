@@ -138,21 +138,6 @@ func redButtonBackground(ops *op.Ops) {
 	rect(ops)
 }
 
-func line(ops *op.Ops, start f32.Point, end f32.Point, width float32, color color.NRGBA) {
-	var path clip.Path
-	path.Begin(ops)
-	path.MoveTo(start)
-	path.LineTo(end)
-	path.Close()
-
-	line := clip.Stroke{
-		Path:  path.End(),
-		Width: width,
-	}
-
-	paint.FillShape(ops, color, line.Op())
-}
-
 func strokeTriangle(ops *op.Ops) {
 	var path clip.Path
 	path.Begin(ops)
