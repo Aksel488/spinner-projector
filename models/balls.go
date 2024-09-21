@@ -17,7 +17,7 @@ type balls struct {
 
 func NewBalls(n int) balls {
 	var ballList []*ball
-	for _ = range n {
+	for range n {
 		ballList = append(ballList, NewBall())
 	}
 
