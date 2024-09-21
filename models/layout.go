@@ -7,7 +7,9 @@ import (
 	"gioui.org/op"
 )
 
-type SplitVisual struct{}
+type SplitVisual struct {
+	count int
+}
 
 func (s SplitVisual) Layout(gtx layout.Context, left, rigth layout.Widget) layout.Dimensions {
 	leftSize := gtx.Constraints.Max.X / 2

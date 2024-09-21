@@ -1,124 +1,126 @@
 package models
 
 import (
-	"fmt"
 	"image"
-	"image/color"
 	"spinner-projector/ui"
 
-	"gioui.org/io/event"
-	"gioui.org/io/pointer"
 	"gioui.org/layout"
-	"gioui.org/op/clip"
-	"gioui.org/op/paint"
+	"gioui.org/widget"
+	"gioui.org/widget/material"
 )
 
 type Application struct {
-	menu []ManuItem
+	menu        []ManuItem
+	theme       *material.Theme
+	splitVisual SplitVisual
+	left, right bool
 }
 
 func NewApplication() *Application {
-
 	menu := []ManuItem{
 		{
-			Name:     "File",
+			Name:     "File 1",
 			Selected: true,
+			Content:  NewColorBox(ui.Red),
+			btn:      &widget.Clickable{},
+		},
+		{
+			Name:     "File 2",
+			Selected: false,
+			Content:  NewColorBox(ui.Blue),
+			btn:      &widget.Clickable{},
+		},
+		{
+			Name:     "File 3",
+			Selected: true,
+			Content:  NewColorBox(ui.Black),
+			btn:      &widget.Clickable{},
 		},
 	}
 
 	return &Application{
-		menu: menu,
+		menu:        menu,
+		theme:       material.NewTheme(),
+		splitVisual: SplitVisual{},
 	}
 }
 
 func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dimensions {
-	// Layout the left side (menu)
-
 	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		buttin := Button{}
-		return buttin.ClickColorBox(gtx, image.Pt(200, gtx.Constraints.Max.Y), ui.Red)
+		return application.menu[0].Content.Draw(gtx, image.Pt(200, gtx.Constraints.Max.Y))
 	})
 
-	// Layout the right side (content)
-	contentWidget := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-		buttin := Button{}
-		return buttin.ClickColorBox(gtx, image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y), ui.Blue)
-	})
+	// menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+	// 	leftSide := layout.Flex{
+	// 		Axis:      layout.Vertical,
+	// 		Alignment: layout.Middle,
+	// 	}.Layout(gtx, func(gtx layout.Context) layout.FlexChild {
 
-	// leftSide := layout.Flex{
-	// 	Axis:      layout.Vertical,
-	// 	Alignment: layout.Middle,
-	// }.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-	// 	return layout.List{Axis: layout.Vertical}.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
-	// 		item := &application.menu[i]
-	// 		btn := material.Button(theme, item.Name).Layout(gtx)
-	// 		if btn.Clicked() {
-	// 			// Handle menu item selection
-	// 		}
-	// 		return btn
+	// 		return layout.Flexed(gtx, func(gtx layout.Context) layout.Dimensions {
+	// 			asd := layout.List{Axis: layout.Vertical}
+	// 			return asd.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
+	// 				item := &application.menu[i]
+	// 				btn := material.Button(application.theme, item.btn, item.Name).Layout(gtx)
+	// 				if item.btn.Pressed() {
+	// 					fmt.Println("cliked happen sad", item.btn)
+	// 					item.Selected = true
+	// 					for j := range application.menu {
+	// 						if i != j {
+	// 							application.menu[j].Selected = false
+	// 						}
+	// 					}
+	// 				}
+	// 				return btn
+	// 			})
+	// 		})
+	// 		return alks
 	// 	})
+	// 	leftSide.Size = image.Pt(200, gtx.Constraints.Max.Y)
+	// 	return leftSide
 	// })
 
-	// // Layout the right side (content)
-	// rightSide := layout.Flex{
-	// 	Axis:      layout.Vertical,
-	// 	Alignment: layout.Middle,
-	// }.Layout(ctx, func(gtx layout.Context) layout.Dimensions {
-	// 	selectedItem := application.getSelectedMenuItem()
-	// 	if selectedItem != nil {
-	// 		return selectedItem.Content.Layout(gtx)
-	// 	}
-	// 	return layout.Dimensions{}
-	// })
+	contentWidget := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+		var content Content
+		for _, appl := range application.menu {
+			if appl.Selected {
+				content = appl.Content
+			}
+		}
+		return content.Draw(gtx, image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y))
+	})
 
 	// Combine left and right sides
-	return layout.Flex{
-		// Axis:      layout.Horizontal,
-		// Alignment: layout.Middle,
-	}.Layout(gtx, menuWidget, contentWidget)
+	return layout.Flex{}.Layout(gtx, menuWidget, contentWidget)
 }
 
-type Button struct {
-	pressed bool
-}
+// return application.splitVisual.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+// 	return FillWithLabel(gtx, application.theme, "left", ui.Red, application.left)
+// }, func(gtx layout.Context) layout.Dimensions {
+// 	return FillWithLabel(gtx, application.theme, "right", ui.Blue, application.rigth)
+// })
 
-func (b *Button) ClickColorBox(gtx layout.Context, size image.Point, color color.NRGBA) layout.Dimensions {
-	area := clip.Rect{Max: size}.Push(gtx.Ops)
-	event.Op(gtx.Ops, b)
+// leftSide := layout.Flex{
+// 	Axis:      layout.Vertical,
+// 	Alignment: layout.Middle,
+// }.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+// 	return layout.List{Axis: layout.Vertical}.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
+// 		item := &application.menu[i]
+// 		btn := material.Button(theme, item.Name).Layout(gtx)
+// 		if btn.Clicked() {
+// 			// Handle menu item selection
+// 		}
+// 		return btn
+// 	})
+// })
 
-	for {
-		ev, ok := gtx.Event(pointer.Filter{
-			Target: b,
-			Kinds:  pointer.Press | pointer.Release,
-		})
-		fmt.Println("click event", ok)
-		if !ok {
-			break
-		}
-
-		e, ok := ev.(pointer.Event)
-		if !ok {
-			continue
-		}
-
-		switch e.Kind {
-		case pointer.Press:
-			b.pressed = true
-		case pointer.Release:
-			b.pressed = false
-		}
-
-	}
-
-	area.Pop()
-
-	col := color
-	if b.pressed {
-		col = ui.Green
-	}
-
-	defer clip.Rect{Max: size}.Push(gtx.Ops).Pop()
-	paint.ColorOp{Color: col}.Add(gtx.Ops)
-	paint.PaintOp{}.Add(gtx.Ops)
-	return layout.Dimensions{Size: size}
-}
+// // Layout the right side (content)
+// rightSide := layout.Flex{
+// 	Axis:      layout.Vertical,
+// 	Alignment: layout.Middle,
+// }.Layout(ctx, func(gtx layout.Context) layout.Dimensions {
+// 	selectedItem := application.getSelectedMenuItem()
+// 	if selectedItem != nil {
+// 		return selectedItem.Content.Layout(gtx)
+// 	}
+// 	return layout.Dimensions{}
+// })

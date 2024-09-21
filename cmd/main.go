@@ -41,9 +41,9 @@ func main() {
 func runApplication(window *app.Window) error {
 	theme := material.NewTheme()
 	windowState := NewState()
+	var ops op.Ops
 	application := models.NewApplication()
 
-	var ops op.Ops
 	for {
 		switch e := window.Event().(type) {
 		case app.DestroyEvent:
@@ -62,6 +62,7 @@ func runApplication(window *app.Window) error {
 
 			// draw the window and trigger redraw
 			e.Frame(gtx.Ops)
+			// time.Sleep((0.13-float64(time.Since(windowState.frameDraw))) * float64(time.Second))
 			window.Invalidate()
 		}
 	}
