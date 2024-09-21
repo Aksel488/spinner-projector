@@ -5,6 +5,7 @@ import (
 	"image/color"
 	"math/rand/v2"
 
+	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
@@ -15,13 +16,13 @@ type balls struct {
 	Balls []*ball
 }
 
-func NewBalls(n int) balls {
+func NewBalls(n int) *balls {
 	var ballList []*ball
 	for range n {
 		ballList = append(ballList, NewBall())
 	}
 
-	b := balls{
+	b := &balls{
 		Balls: ballList,
 	}
 	return b
@@ -38,16 +39,17 @@ func (b *balls) RemoveBall() {
 	b.Balls = b.Balls[:len(b.Balls)-1]
 }
 
-func (b *balls) Update(dt float64, maxX, maxY int) {
+func (b *balls) Update(gtx layout.Context, dt float64) {
 	for _, ball := range b.Balls {
-		ball.Update(dt, maxX, maxY)
+		ball.Update(dt, gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
 	}
 }
 
-func (b *balls) Draw(ops *op.Ops) {
+func (b *balls) Draw(gtx layout.Context, size image.Point) layout.Dimensions {
 	for _, ball := range b.Balls {
-		ball.Draw(ops)
+		ball.Draw(gtx.Ops)
 	}
+	return layout.Dimensions{Size: size}
 }
 
 // /////////// BALL /////////////

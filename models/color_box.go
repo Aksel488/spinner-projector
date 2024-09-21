@@ -64,3 +64,5 @@ func (cb *ColorBox) Draw(gtx layout.Context, size image.Point) layout.Dimensions
 
 	return layout.Dimensions{Size: size}
 }
+
+func (cb *ColorBox) Update(gtx layout.Context, dt float64) {}

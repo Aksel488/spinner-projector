@@ -84,11 +84,11 @@ func run(window *app.Window) error {
 			windowState.update()
 
 			// update functions
-			balls.Update(dt, gtx.Constraints.Max.X, gtx.Constraints.Max.Y)
+			balls.Update(gtx, dt)
 
 			// draw functions
 			draw(gtx.Ops)
-			balls.Draw(gtx.Ops)
+			balls.Draw(gtx, gtx.Constraints.Max)
 			windowState.draw(gtx, theme)
 
 			// handle events from pointer and keyboard

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"spinner-projector/ui"
@@ -31,13 +32,19 @@ func NewApplication() *Application {
 		{
 			Name:     "blue",
 			Selected: false,
-			Content:  NewColorBox(ui.Blue),
+			Content:  NewBalls(20),
 			btn:      &widget.Clickable{},
 		},
 		{
 			Name:     "example",
 			Selected: false,
-			Content:  NewColorBox(ui.Black),
+			Content:  NewBalls(40),
+			btn:      &widget.Clickable{},
+		},
+		{
+			Name:     "example",
+			Selected: false,
+			Content:  NewBalls(2),
 			btn:      &widget.Clickable{},
 		},
 	}
@@ -101,62 +108,67 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 	// 	return application.menu[0].Content.Draw(gtx, image.Pt(200, gtx.Constraints.Max.Y))
 	// })
 
-	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-		return menuWidget(gtx)
-		// btnHolder := layout.Dimensions{Size: image.Pt(200, gtx.Constraints.Max.Y)}
-		// return btnHolder
-	})
-
 	// menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-	// 	btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
-
-	// 	btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
-	// 		menuItem := &application.menu[i]
-	// 		btn := material.Button(application.theme, menuItem.btn, menuItem.Name)
-
-	// 		if menuItem.btn.Pressed() {
-	// 			fmt.Println("cliked happen", menuItem.btn)
-	// 			menuItem.Selected = true
-	// 			for j := range application.menu {
-	// 				if i != j {
-	// 					application.menu[j].Selected = false
-	// 				}
-	// 			}
-	// 		}
-
-	// 		btn.Inset = layout.Inset{
-	// 			Top:    10,
-	// 			Bottom: 10,
-	// 			Left:   40,
-	// 			Right:  40,
-	// 		}
-
-	// 		border := widget.Border{
-	// 			Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-	// 			CornerRadius: unit.Dp(0),
-	// 			Width:        unit.Dp(1),
-	// 		}
-
-	// 		// Center the button, apply the border and layout the button
-	// 		return layout.Flex{
-	// 			Axis:      layout.Horizontal,
-	// 			Spacing:   layout.SpaceAround,
-	// 			Alignment: layout.Middle,
-	// 		}.Layout(gtx,
-	// 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-	// 				return border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-
-	// 					btnLayout := btn.Layout(gtx)
-	// 					btnLayout.Size = image.Pt(150, 50)
-	// 					return btnLayout
-	// 				})
-	// 			}),
-	// 		)
-	// 	})
-
-	// 	btnHolder := layout.Dimensions{Size: image.Pt(200, gtx.Constraints.Max.Y)}
-	// 	return btnHolder
+	// 	return layout.Flex{
+	// 		Axis:      layout.Vertical,
+	// 		Alignment: layout.Middle, // Center vertically
+	// 	}.Layout(gtx,
+	// 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+	// 			return boxWidget(gtx)
+	// 		}),
+	// 	)
 	// })
+
+	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+		btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
+
+		btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
+			menuItem := &application.menu[i]
+			btn := material.Button(application.theme, menuItem.btn, menuItem.Name)
+
+			if menuItem.btn.Pressed() && !menuItem.Selected {
+				fmt.Println("cliked happen", menuItem.btn)
+				menuItem.Selected = true
+				for j := range application.menu {
+					if i != j {
+						application.menu[j].Selected = false
+					}
+				}
+			}
+
+			btn.Inset = layout.Inset{
+				Top:    10,
+				Bottom: 10,
+				Left:   40,
+				Right:  40,
+			}
+
+			border := widget.Border{
+				Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
+				CornerRadius: unit.Dp(0),
+				Width:        unit.Dp(1),
+			}
+
+			// Center the button, apply the border and layout the button
+			return layout.Flex{
+				Axis:      layout.Horizontal,
+				Spacing:   layout.SpaceAround,
+				Alignment: layout.Middle,
+			}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+
+						btnLayout := btn.Layout(gtx)
+						btnLayout.Size = image.Pt(150, 50)
+						return btnLayout
+					})
+				}),
+			)
+		})
+
+		btnHolder := layout.Dimensions{Size: image.Pt(200, gtx.Constraints.Max.Y)}
+		return btnHolder
+	})
 
 	contentWidget := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 		var content Content
@@ -165,6 +177,7 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 				content = appl.Content
 			}
 		}
+		content.Update(gtx, dt)
 		return content.Draw(gtx, image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y))
 	})
 

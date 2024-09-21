@@ -8,6 +8,7 @@ import (
 )
 
 type Content interface {
+	Update(gtx layout.Context, dt float64)
 	Draw(gtx layout.Context, size image.Point) layout.Dimensions
 }
 
