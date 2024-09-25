@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"spinner-projector/apps/pendulum"
 	"spinner-projector/ui"
 
 	"gioui.org/layout"
@@ -24,8 +25,14 @@ type Application struct {
 func NewApplication() *Application {
 	menu := []ManuItem{
 		{
-			Name:     "ball flinger",
+			Name:     "pendulum",
 			Selected: true,
+			Content:  pendulum.NewDoublePendulumSystem(),
+			btn:      &widget.Clickable{},
+		},
+		{
+			Name:     "ball flinger",
+			Selected: false,
 			Content:  NewBalls(10),
 			btn:      &widget.Clickable{},
 		},
