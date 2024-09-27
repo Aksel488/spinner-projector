@@ -14,19 +14,16 @@ import (
 type DoublePendulumSystem struct {
 	pendulum1 *pendulum
 	pendulum2 *pendulum
-
-	gravity float64
 }
 
 func NewDoublePendulumSystem() *DoublePendulumSystem {
-	pendulum1 := NewPendulum(500, 400, 0, 1)
+	pendulum1 := NewPendulum(500, 400, -0.000001, 0.00001)
 	x, y := pendulum1.getEnd()
-	pendulum2 := NewPendulum(x, y, 0, 2)
+	pendulum2 := NewPendulum(x, y, 0.00001, 0)
 
 	return &DoublePendulumSystem{
 		pendulum1: pendulum1,
 		pendulum2: pendulum2,
-		gravity:   9.81,
 	}
 }
 
@@ -61,9 +58,9 @@ func NewPendulum(x, y, angle, angleVel float64) *pendulum {
 	return &pendulum{
 		px:       x,
 		py:       y,
-		angle:    angle,
+		angle:    angle - math.Pi/2,
 		angleVel: angleVel,
-		r:        100,
+		r:        200,
 		color:    ui.Blue,
 	}
 }
@@ -80,7 +77,8 @@ func (p *pendulum) Draw(ops *op.Ops) {
 }
 
 func (p *pendulum) Update(dt float64) {
-	p.angle += p.angleVel * dt
+	p.angleVel += 0.1 * math.Cos(p.angle) * dt
+	p.angle += p.angleVel
 
 	// p.px = 200 + 100*math.Cos(p.angle)
 	// p.py = 200 + 100*math.Sin(p.angle)
