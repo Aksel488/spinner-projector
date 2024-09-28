@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"spinner-projector/apps/pendulum"
+	"spinner-projector/apps/pendulumsystem"
 	"spinner-projector/ui"
 
 	"gioui.org/layout"
@@ -25,48 +25,58 @@ type Application struct {
 func NewApplication() *Application {
 	menu := []ManuItem{
 		{
-			Name:     "pendulum",
-			Selected: true,
-			Content:  pendulum.NewDoublePendulumSystem(),
-			btn:      &widget.Clickable{},
+			Name:    "pendulum",
+			Content: pendulumsystem.NewDoublePendulumSystem(0, -0.001, ui.Red),
+			btn:     &widget.Clickable{},
 		},
 		{
-			Name:     "ball flinger",
-			Selected: false,
-			Content:  NewBalls(10),
-			btn:      &widget.Clickable{},
+			Name:    "spider",
+			Content: pendulumsystem.NewMultiPendulumSystem(9),
+			btn:     &widget.Clickable{},
 		},
 		{
-			Name:     "Red",
-			Selected: false,
-			Content:  NewColorBox(ui.Red),
-			btn:      &widget.Clickable{},
+			Name:    "Rainbow rgb",
+			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0.1, 0.0001, "rgb"),
+			btn:     &widget.Clickable{},
 		},
 		{
-			Name:     "Purple",
-			Selected: false,
-			Content:  NewColorBox(ui.Purple),
-			btn:      &widget.Clickable{},
+			Name:    "Rainbow hcl",
+			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0, 0.0000001, "hcl"),
+			btn:     &widget.Clickable{},
 		},
 		{
-			Name:     "blue",
-			Selected: false,
-			Content:  NewBalls(20),
-			btn:      &widget.Clickable{},
+			Name:    "ball flinger",
+			Content: NewBalls(10),
+			btn:     &widget.Clickable{},
 		},
 		{
-			Name:     "example 40",
-			Selected: false,
-			Content:  NewBalls(40),
-			btn:      &widget.Clickable{},
+			Name:    "Red",
+			Content: NewColorBox(ui.Red),
+			btn:     &widget.Clickable{},
 		},
 		{
-			Name:     "example 2",
-			Selected: false,
-			Content:  NewBalls(2),
-			btn:      &widget.Clickable{},
+			Name:    "Purple",
+			Content: NewColorBox(ui.Purple),
+			btn:     &widget.Clickable{},
+		},
+		{
+			Name:    "blue",
+			Content: NewBalls(20),
+			btn:     &widget.Clickable{},
+		},
+		{
+			Name:    "example 40",
+			Content: NewBalls(40),
+			btn:     &widget.Clickable{},
+		},
+		{
+			Name:    "example 2",
+			Content: NewBalls(2),
+			btn:     &widget.Clickable{},
 		},
 	}
+
+	menu[0].Selected = true
 
 	return &Application{
 		menu:        menu,

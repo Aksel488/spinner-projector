@@ -62,7 +62,10 @@ func runApplication(window *app.Window) error {
 
 			// draw the window and trigger redraw
 			e.Frame(gtx.Ops)
-			// time.Sleep((0.13-float64(time.Since(windowState.frameDraw))) * float64(time.Second))
+
+			// desiredFrameRate := 60.0
+			// duration := (1/desiredFrameRate - time.Since(windowState.frameDraw).Seconds()) * 1000
+			// time.Sleep(time.Duration(duration) * time.Millisecond)
 			window.Invalidate()
 		}
 	}
