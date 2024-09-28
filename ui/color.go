@@ -21,7 +21,7 @@ func GenerateEvenHclColors(n int) []color.NRGBA {
 	colors := make([]color.NRGBA, n)
 	for i := range n {
 		hue := float64(i) / float64(n) * 360
-		c := colorful.Hsl(hue, 1, 0.5) // Fixed chroma and lightness
+		c := colorful.Hcl(hue, 1, 0.5) // Fixed chroma and lightness
 		r, g, b := c.RGB255()
 		colors[i] = color.NRGBA{R: r, G: g, B: b, A: 150}
 	}

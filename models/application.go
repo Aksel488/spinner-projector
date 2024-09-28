@@ -26,7 +26,7 @@ func NewApplication() *Application {
 	menu := []ManuItem{
 		{
 			Name:    "pendulum",
-			Content: pendulumsystem.NewDoublePendulumSystem(0, -0.001, ui.Red),
+			Content: pendulumsystem.NewDoublePendulumSystem(1, -1.5, ui.Red),
 			btn:     &widget.Clickable{},
 		},
 		{
@@ -36,12 +36,17 @@ func NewApplication() *Application {
 		},
 		{
 			Name:    "Rainbow rgb",
-			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0.1, 0.0001, "rgb"),
+			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0, 0.1, 0.0001, "rgb"),
+			btn:     &widget.Clickable{},
+		},
+		{
+			Name:    "Rainbow slow",
+			Content: pendulumsystem.NewRainbowPendulumSystem(1000, 1, -1, 0.00000001, "rgb"),
 			btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "Rainbow hcl",
-			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0, 0.0000001, "hcl"),
+			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0, 0, 0.01, "hcl"),
 			btn:     &widget.Clickable{},
 		},
 		{

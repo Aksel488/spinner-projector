@@ -12,7 +12,7 @@ type RainbowPendulumSystem struct {
 	pendulums []*DoublePendulumSystem
 }
 
-func NewRainbowPendulumSystem(numPendulums int, initAngle, closeness float64, colorSpace string) *RainbowPendulumSystem {
+func NewRainbowPendulumSystem(numPendulums int, innerAngle, outerAngle, space float64, colorSpace string) *RainbowPendulumSystem {
 	var colors []color.NRGBA
 
 	switch colorSpace {
@@ -25,8 +25,8 @@ func NewRainbowPendulumSystem(numPendulums int, initAngle, closeness float64, co
 	pends := make([]*DoublePendulumSystem, numPendulums)
 
 	for i := range numPendulums {
-		angle := (float64(i+1) * closeness) - 1
-		pends[i] = NewDoublePendulumSystem(initAngle, angle, colors[i])
+		angle := (float64(i+1) * space) + outerAngle
+		pends[i] = NewDoublePendulumSystem(innerAngle, angle, colors[i])
 	}
 
 	return &RainbowPendulumSystem{

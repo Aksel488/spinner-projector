@@ -12,9 +12,11 @@ import (
 )
 
 type DoublePendulumSystem struct {
-	p1 *pendulum
-	p2 *pendulum
-	g  float64
+	p1        *pendulum
+	p2        *pendulum
+	drawTrail bool
+	trail     [][]int
+	g         float64
 }
 
 func NewDoublePendulumSystem(offset1, offset2 float64, color color.NRGBA) *DoublePendulumSystem {
@@ -23,16 +25,26 @@ func NewDoublePendulumSystem(offset1, offset2 float64, color color.NRGBA) *Doubl
 	pendulum2 := NewPendulum(x, y, -math.Pi+offset2, color)
 
 	return &DoublePendulumSystem{
-		p1: pendulum1,
-		p2: pendulum2,
-		// g:  9.81,
-		g: 9.81 * 5,
+		p1:        pendulum1,
+		p2:        pendulum2,
+		drawTrail: false,
+		g:         9.81,
 	}
 }
 
 func (s *DoublePendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {
 	s.p1.Draw(gtx.Ops)
 	s.p2.Draw(gtx.Ops)
+
+	if s.drawTrail {
+		for i, p := range s.trail {
+			if i+2 < len(s.trail) {
+				np := s.trail[i+1]
+				c := color.NRGBA{R: 0, G: 0, B: 0, A: uint8(i)}
+				ui.Line(gtx.Ops, f32.Pt(float32(p[0]), float32(p[1])), f32.Pt(float32(np[0]), float32(np[1])), 1, c)
+			}
+		}
+	}
 
 	return layout.Dimensions{Size: size}
 }
@@ -47,16 +59,18 @@ func (s *DoublePendulumSystem) Update(gtx layout.Context, dt float64) {
 	av2 := s.p2.angleVel
 	m1 := s.p1.m
 	m2 := s.p2.m
+	l1 := 1.0
+	l2 := 1.0
 
 	mass1 := -s.g * (2*m1 + m2) * math.Sin(a1)
 	mass2 := -m2 * s.g * math.Sin(a1-2*a2)
 
-	interaction := -2 * math.Sin(a1-a2) * m2 * math.Cos(math.Pow(av2, 2)*s.p2.r+math.Pow(av1, 2)*s.p1.r*math.Cos(a1-a2))
-	normalization := s.p1.r * (2*m1 + m2 - m2*math.Cos(2*a1-2*a2))
+	interaction := -2 * math.Sin(a1-a2) * m2 * math.Cos(math.Pow(av2, 2)*l2+math.Pow(av1, 2)*l1*math.Cos(a1-a2))
+	normalization := l1 * (2*m1 + m2 - m2*math.Cos(2*a1-2*a2))
 	angle1Ddot := (mass1 + mass2 + interaction) / normalization
 
-	system := 2 * math.Sin(a1-a2) * (math.Pow(av1, 2)*s.p1.r*(m1+m2) + s.g*(m1+m2)*math.Cos(a1) + math.Pow(av2, 2)*s.p2.r*m2*math.Cos(a1-a2))
-	normalization = s.p1.r * (2*m1 + m2 - m2*math.Cos(2*a1-2*a2))
+	system := 2 * math.Sin(a1-a2) * (math.Pow(av1, 2)*l1*(m1+m2) + s.g*(m1+m2)*math.Cos(a1) + math.Pow(av2, 2)*l2*m2*math.Cos(a1-a2))
+	normalization = l1 * (2*m1 + m2 - m2*math.Cos(2*a1-2*a2))
 	angle2Ddot := system / normalization
 
 	s.p1.angleVel += angle1Ddot * dt
@@ -67,6 +81,15 @@ func (s *DoublePendulumSystem) Update(gtx layout.Context, dt float64) {
 	x, y := s.p1.getEnd()
 	s.p2.px = x
 	s.p2.py = y
+
+	if s.drawTrail {
+		endX, endY := s.p2.getEnd()
+		point := []int{int(endX), int(endY)}
+		s.trail = append(s.trail, point)
+		if len(s.trail) > 200 {
+			s.trail = s.trail[1:]
+		}
+	}
 
 	// x1 := s.p1.r * math.Sin(angle1Ddot)
 	// y1 := -s.p1.r * math.Cos(angle1Ddot)
