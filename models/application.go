@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"spinner-projector/apps/balls"
 	"spinner-projector/apps/pendulumsystem"
 	"spinner-projector/ui"
 
@@ -41,7 +42,7 @@ func NewApplication() *Application {
 		},
 		{
 			Name:    "Rainbow slow",
-			Content: pendulumsystem.NewRainbowPendulumSystem(1000, 1, -1, 0.00000001, "rgb"),
+			Content: pendulumsystem.NewRainbowPendulumSystem(700, 1, -1, 0.00000001, "rgb"),
 			btn:     &widget.Clickable{},
 		},
 		{
@@ -50,8 +51,13 @@ func NewApplication() *Application {
 			btn:     &widget.Clickable{},
 		},
 		{
+			Name:    "Rainbow slow low",
+			Content: pendulumsystem.NewRainbowPendulumSystem(500, 1, -1.5, 0.0000001, "rgb"),
+			btn:     &widget.Clickable{},
+		},
+		{
 			Name:    "ball flinger",
-			Content: NewBalls(10),
+			Content: balls.NewBalls(10),
 			btn:     &widget.Clickable{},
 		},
 		{
@@ -66,17 +72,17 @@ func NewApplication() *Application {
 		},
 		{
 			Name:    "blue",
-			Content: NewBalls(20),
+			Content: balls.NewBalls(20),
 			btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "example 40",
-			Content: NewBalls(40),
+			Content: balls.NewBalls(40),
 			btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "example 2",
-			Content: NewBalls(2),
+			Content: balls.NewBalls(2),
 			btn:     &widget.Clickable{},
 		},
 	}

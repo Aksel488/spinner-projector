@@ -59,8 +59,8 @@ func (s *DoublePendulumSystem) Update(gtx layout.Context, dt float64) {
 	av2 := s.p2.angleVel
 	m1 := s.p1.m
 	m2 := s.p2.m
-	l1 := 1.0
-	l2 := 1.0
+	l1 := 10.0
+	l2 := 10.0
 
 	mass1 := -s.g * (2*m1 + m2) * math.Sin(a1)
 	mass2 := -m2 * s.g * math.Sin(a1-2*a2)

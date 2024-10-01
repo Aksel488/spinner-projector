@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"log"
 	"os"
+	"spinner-projector/apps/balls"
 	"spinner-projector/events"
 	"spinner-projector/models"
 	"spinner-projector/ui"
@@ -74,7 +75,7 @@ func runApplication(window *app.Window) error {
 func run(window *app.Window) error {
 	theme := material.NewTheme()
 	windowState := NewState()
-	balls := models.NewBalls(50)
+	balls := balls.NewBalls(50)
 
 	var ops op.Ops
 	for {

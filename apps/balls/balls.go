@@ -1,4 +1,4 @@
-package models
+package balls
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"math/rand/v2"
 	"spinner-projector/ui"
+	"spinner-projector/util"
 
 	"gioui.org/f32"
 	"gioui.org/io/event"
@@ -60,7 +61,7 @@ func (b *balls) BallsAt(x, y int) []*ball {
 	balls := []*ball{}
 
 	for _, ball := range b.Balls {
-		dist := Distance(x, y, int(ball.px), int(ball.py))
+		dist := util.Distance(x, y, int(ball.px), int(ball.py))
 		// fmt.Println(fmt.Sprintf("(%d, %d)", x, y), fmt.Sprintf("(%d, %d)", int(ball.px), int(ball.py)), "dist", dist, "r", ball.r)
 		if dist < float64(ball.r) {
 			balls = append(balls, ball)
