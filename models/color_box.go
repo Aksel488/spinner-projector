@@ -11,6 +11,7 @@ import (
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/widget/material"
 )
 
 type ColorBox struct {
@@ -22,6 +23,10 @@ type ColorBox struct {
 func NewColorBox(color color.NRGBA) *ColorBox {
 	var cliked bool
 	return &ColorBox{color: color, clicked: &cliked}
+}
+
+func (s *ColorBox) Menu(gtx layout.Context, theme *material.Theme) {
+
 }
 
 func (cb *ColorBox) Draw(gtx layout.Context, size image.Point) layout.Dimensions {

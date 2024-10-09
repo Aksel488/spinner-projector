@@ -8,6 +8,7 @@ import (
 	"spinner-projector/apps/pendulumsystem"
 	"spinner-projector/ui"
 
+	"gioui.org/io/key"
 	"gioui.org/layout"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
@@ -17,10 +18,11 @@ import (
 )
 
 type Application struct {
-	menu        []ManuItem
-	theme       *material.Theme
-	splitVisual SplitVisual
-	left, right bool
+	menu          []ManuItem
+	menuState     string
+	escapePressed bool
+	theme         *material.Theme
+	splitVisual   SplitVisual
 }
 
 func NewApplication() *Application {
@@ -91,6 +93,7 @@ func NewApplication() *Application {
 
 	return &Application{
 		menu:        menu,
+		menuState:   "main",
 		theme:       material.NewTheme(),
 		splitVisual: SplitVisual{},
 	}
@@ -159,6 +162,35 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 	// 	)
 	// })
 
+	// handle key events
+
+	for {
+		event, ok := gtx.Event(
+			key.Filter{
+				Name: key.NameEscape,
+			},
+		)
+		if !ok {
+			break
+		}
+		ev, ok := event.(key.Event)
+		if !ok {
+			continue
+		}
+
+		if !application.escapePressed && ev.State == key.Press {
+			if application.menuState == "main" {
+				application.menuState = "controls"
+			} else if application.menuState == "controls" {
+				application.menuState = "hidden"
+			} else if application.menuState == "hidden" {
+				application.menuState = "main"
+			}
+		}
+
+		application.escapePressed = ev.State == key.Press
+	}
+
 	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 		size := image.Pt(200, gtx.Constraints.Max.Y)
 		btnHolder := layout.Dimensions{Size: size}
@@ -167,51 +199,33 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 		paint.ColorOp{Color: ui.Purple}.Add(gtx.Ops)
 		paint.PaintOp{}.Add(gtx.Ops)
 
-		btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
+		if application.menuState == "main" {
+			btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
+			btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
+				menuItem := &application.menu[i]
+				btn := material.Button(application.theme, menuItem.btn, menuItem.Name)
 
-		btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
-			menuItem := &application.menu[i]
-			btn := material.Button(application.theme, menuItem.btn, menuItem.Name)
-
-			if menuItem.btn.Pressed() && !menuItem.Selected {
-				fmt.Println("cliked happen", menuItem.btn)
-				menuItem.Selected = true
-				for j := range application.menu {
-					if i != j {
-						application.menu[j].Selected = false
+				if menuItem.btn.Pressed() && !menuItem.Selected {
+					fmt.Println("cliked happen", menuItem.btn)
+					menuItem.Selected = true
+					for j := range application.menu {
+						if i != j {
+							application.menu[j].Selected = false
+						}
 					}
 				}
+
+				return ui.DefaultButton(gtx, &btn)
+			})
+		} else if application.menuState == "controls" {
+			var selected Content
+			for i := range application.menu {
+				if application.menu[i].Selected {
+					selected = application.menu[i].Content
+				}
 			}
-
-			btn.Inset = layout.Inset{
-				Top:    10,
-				Bottom: 10,
-				Left:   40,
-				Right:  40,
-			}
-
-			border := widget.Border{
-				Color:        color.NRGBA{R: 0, G: 0, B: 0, A: 255},
-				CornerRadius: unit.Dp(0),
-				Width:        unit.Dp(1),
-			}
-
-			// Center the button, apply the border and layout the button
-			return layout.Flex{
-				Axis:      layout.Horizontal,
-				Spacing:   layout.SpaceAround,
-				Alignment: layout.Middle,
-			}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return border.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-
-						btnLayout := btn.Layout(gtx)
-						btnLayout.Size = image.Pt(150, 50)
-						return btnLayout
-					})
-				}),
-			)
-		})
+			selected.Menu(gtx, application.theme)
+		}
 
 		return btnHolder
 	})
@@ -228,7 +242,11 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 	})
 
 	// Combine left and right sides
-	return layout.Flex{}.Layout(gtx, menuWidget, contentWidget)
+	if application.menuState == "hidden" {
+		return layout.Flex{}.Layout(gtx, contentWidget)
+	} else {
+		return layout.Flex{}.Layout(gtx, menuWidget, contentWidget)
+	}
 }
 
 // return application.splitVisual.Layout(gtx, func(gtx layout.Context) layout.Dimensions {

@@ -15,6 +15,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
+	"gioui.org/widget/material"
 )
 
 // /////////// BALLS /////////////
@@ -42,6 +43,10 @@ func NewBalls(n int) *balls {
 		mouseY:    new(int),
 	}
 	return b
+}
+
+func (s *balls) Menu(gtx layout.Context, theme *material.Theme) {
+
 }
 
 func (b *balls) AddBall(x, y, vx, vy float64) {

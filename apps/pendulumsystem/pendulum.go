@@ -9,6 +9,8 @@ import (
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/widget"
+	"gioui.org/widget/material"
 )
 
 type DoublePendulumSystem struct {
@@ -27,9 +29,18 @@ func NewDoublePendulumSystem(offset1, offset2 float64, color color.NRGBA) *Doubl
 	return &DoublePendulumSystem{
 		p1:        pendulum1,
 		p2:        pendulum2,
-		drawTrail: false,
+		drawTrail: true,
 		g:         9.81,
 	}
+}
+
+func (s *DoublePendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
+	btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
+	btnList.Layout(gtx, 2, func(gtx layout.Context, i int) layout.Dimensions {
+		btn := material.Button(theme, &widget.Clickable{}, "test")
+
+		return ui.DefaultButton(gtx, &btn)
+	})
 }
 
 func (s *DoublePendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {

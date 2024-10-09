@@ -6,6 +6,7 @@ import (
 	"spinner-projector/ui"
 
 	"gioui.org/layout"
+	"gioui.org/widget/material"
 )
 
 type MultiPendulumSystem struct {
@@ -22,6 +23,10 @@ func NewMultiPendulumSystem(numPendulums int) *MultiPendulumSystem {
 	return &MultiPendulumSystem{
 		pendulums: pends,
 	}
+}
+
+func (s *MultiPendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
+
 }
 
 func (s *MultiPendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {

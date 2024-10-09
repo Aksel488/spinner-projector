@@ -6,6 +6,7 @@ import (
 	"spinner-projector/ui"
 
 	"gioui.org/layout"
+	"gioui.org/widget/material"
 )
 
 type RainbowPendulumSystem struct {
@@ -32,6 +33,10 @@ func NewRainbowPendulumSystem(numPendulums int, innerAngle, outerAngle, space fl
 	return &RainbowPendulumSystem{
 		pendulums: pends,
 	}
+}
+
+func (s *RainbowPendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
+
 }
 
 func (s *RainbowPendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {
