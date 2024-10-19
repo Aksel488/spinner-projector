@@ -1,14 +1,17 @@
 package pendulumsystem
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"math"
+	"spinner-projector/models"
 	"spinner-projector/ui"
 
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
+	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 )
@@ -19,28 +22,119 @@ type DoublePendulumSystem struct {
 	drawTrail bool
 	trail     [][]int
 	g         float64
+	menu      []models.ControlMenuItem
+	inputs    inputParams
+}
+
+type inputParams struct {
+	offset1, offset2 float64
+	color            color.NRGBA
 }
 
 func NewDoublePendulumSystem(offset1, offset2 float64, color color.NRGBA) *DoublePendulumSystem {
-	pendulum1 := NewPendulum(500, 400, -math.Pi+offset1, color)
-	x, y := pendulum1.getEnd()
-	pendulum2 := NewPendulum(x, y, -math.Pi+offset2, color)
+	inputs := inputParams{offset1, offset2, color}
 
-	return &DoublePendulumSystem{
-		p1:        pendulum1,
-		p2:        pendulum2,
-		drawTrail: true,
-		g:         9.81,
+	pendulumSystem := &DoublePendulumSystem{}
+	pendulumSystem.inputs = inputs
+	pendulumSystem.Init()
+	pendulumSystem.drawTrail = false
+	pendulumSystem.g = 9.81
+
+	pendulumSystem.menu = []models.ControlMenuItem{
+		{
+			Btn:  &widget.Clickable{},
+			Name: "Trail",
+		},
+		{
+			Btn:  &widget.Clickable{},
+			Name: "Reset",
+		},
+		{
+			Btn:  &widget.Float{},
+			Name: "Gravity",
+		},
+	}
+
+	return pendulumSystem
+}
+
+func (s *DoublePendulumSystem) handleBtnClick(btnName string) {
+	switch btnName {
+	case "Trail":
+		s.drawTrail = !s.drawTrail
+		s.trail = nil
+	case "Reset":
+		s.Init()
 	}
 }
 
 func (s *DoublePendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
 	btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
-	btnList.Layout(gtx, 2, func(gtx layout.Context, i int) layout.Dimensions {
-		btn := material.Button(theme, &widget.Clickable{}, "test")
+	btnList.Layout(gtx, len(s.menu), func(gtx layout.Context, i int) layout.Dimensions {
+		menuBtn := s.menu[i]
+		switch menuBtn.Btn.(type) {
+		case *widget.Clickable:
+			clickable := menuBtn.Btn.(*widget.Clickable)
+			btn := material.Button(theme, clickable, menuBtn.Name)
 
-		return ui.DefaultButton(gtx, &btn)
+			if clickable.Clicked(gtx) {
+				s.handleBtnClick(menuBtn.Name)
+			}
+
+			return ui.DefaultButton(gtx, &btn)
+		case *widget.Float:
+			slider := menuBtn.Btn.(*widget.Float)
+
+			if menuBtn.Name == "Gravity" {
+				s.g = float64(slider.Value) * 9.81
+			}
+
+			// sliderStyle := material.Slider(theme, slider)
+			// return ui.DefaultSlider(gtx, &sliderStyle)
+
+			return layout.Flex{
+				Axis:      layout.Vertical,
+				Alignment: layout.Middle,
+			}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Inset{
+						Top:   unit.Dp(20),
+						Left:  unit.Dp(20),
+						Right: unit.Dp(20),
+					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						gtx.Constraints.Max.X = 200
+						// Slider Layout
+						sliderStyle := material.Slider(theme, slider).Layout(gtx)
+						// sliderStyle.Baseline = 20
+						return sliderStyle
+					})
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					// Show current slider value
+					label := material.H5(theme, "Value: "+fmt.Sprintf("%.2f", slider.Value*9.81))
+					label.Color = ui.White
+					return label.Layout(gtx)
+				}),
+			)
+
+		default:
+			btnText := material.H5(theme, menuBtn.Name)
+			btnText.Color = color.NRGBA{G: 200, A: 255}
+			// fpsDisplayText.Alignment = text.Middle
+			dims := btnText.Layout(gtx)
+			dims.Size = image.Pt(150, 50)
+			return dims
+		}
 	})
+}
+
+func (s *DoublePendulumSystem) Init() {
+	pendulum1 := NewPendulum(500, 400, -math.Pi+s.inputs.offset1, s.inputs.color)
+	x, y := pendulum1.getEnd()
+	pendulum2 := NewPendulum(x, y, -math.Pi+s.inputs.offset2, s.inputs.color)
+
+	s.p1 = pendulum1
+	s.p2 = pendulum2
 }
 
 func (s *DoublePendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {
@@ -89,6 +183,8 @@ func (s *DoublePendulumSystem) Update(gtx layout.Context, dt float64) {
 	s.p2.angleVel += angle2Ddot * dt
 	s.p2.angle += s.p2.angleVel * dt
 
+	// fmt.Println("angle1", s.p1.angle, "angle2", s.p2.angle)
+
 	x, y := s.p1.getEnd()
 	s.p2.px = x
 	s.p2.py = y
@@ -101,26 +197,6 @@ func (s *DoublePendulumSystem) Update(gtx layout.Context, dt float64) {
 			s.trail = s.trail[1:]
 		}
 	}
-
-	// x1 := s.p1.r * math.Sin(angle1Ddot)
-	// y1 := -s.p1.r * math.Cos(angle1Ddot)
-	// x2 := x1 + s.p2.r*math.Sin(angle2Ddot)
-	// y2 := y1 - s.p2.r*math.Cos(angle2Ddot)
-	// s.p2.px = x1
-	// s.p2.py = y1
-
-	// ui.Line(gtx.Ops, f32.Pt(float32(s.p1.px), float32(s.p1.py)), f32.Pt(float32(x1), float32(y1)), 2, s.p1.color)
-	// ui.Line(gtx.Ops, f32.Pt(float32(x1), float32(y1)), f32.Pt(float32(x2), float32(y2)), 2, s.p2.color)
-
-	// s.pendulum1.Update(dt)
-
-	// x, y := s.pendulum1.getEnd()
-	// s.pendulum2.px = x
-	// s.pendulum2.py = y
-	// s.pendulum2.Update(dt)
-
-	// s.pendulum1.angleVel += (s.gravity*math.Sin(s.pendulum1.angle) - s.pendulum2.angleVel*math.Sin(s.pendulum1.angle-s.pendulum2.angle)) / s.pendulum2.angle * dt
-	// s.pendulum2.angleVel += (s.gravity*math.Sin(s.pendulum2.angle) - s.pendulum1.angleVel*math.Sin(s.pendulum2.angle-s.pendulum1.angle)) / s.pendulum1.angle * dt
 }
 
 type pendulum struct {

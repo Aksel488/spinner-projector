@@ -14,9 +14,13 @@ type Content interface {
 	Menu(gtx layout.Context, theme *material.Theme)
 }
 
-type ManuItem struct {
-	btn      *widget.Clickable
-	Name     string
-	Selected bool
-	Content  Content
+type MainMenuItem struct {
+	Btn     *widget.Clickable
+	Name    string
+	Content Content
+}
+
+type ControlMenuItem struct {
+	Btn  interface{}
+	Name string
 }

@@ -1,4 +1,4 @@
-package models
+package apps
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"spinner-projector/apps/balls"
 	"spinner-projector/apps/pendulumsystem"
+	"spinner-projector/models"
 	"spinner-projector/ui"
 
 	"gioui.org/io/key"
@@ -18,84 +19,66 @@ import (
 )
 
 type Application struct {
-	menu          []ManuItem
+	selected      *models.MainMenuItem
+	menu          []models.MainMenuItem
 	menuState     string
 	escapePressed bool
 	theme         *material.Theme
-	splitVisual   SplitVisual
+	splitVisual   models.SplitVisual
 }
 
-func NewApplication() *Application {
-	menu := []ManuItem{
+func NewApplication(theme *material.Theme) *Application {
+	menu := []models.MainMenuItem{
 		{
 			Name:    "pendulum",
-			Content: pendulumsystem.NewDoublePendulumSystem(1, -1.5, ui.Red),
-			btn:     &widget.Clickable{},
+			Content: pendulumsystem.NewDoublePendulumSystem(2.4, 0.01, ui.Red),
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "spider",
 			Content: pendulumsystem.NewMultiPendulumSystem(9),
-			btn:     &widget.Clickable{},
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "Rainbow rgb",
 			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0, 0.1, 0.0001, "rgb"),
-			btn:     &widget.Clickable{},
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "Rainbow slow",
 			Content: pendulumsystem.NewRainbowPendulumSystem(700, 1, -1, 0.00000001, "rgb"),
-			btn:     &widget.Clickable{},
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "Rainbow hcl",
 			Content: pendulumsystem.NewRainbowPendulumSystem(500, 0, 0, 0.01, "hcl"),
-			btn:     &widget.Clickable{},
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "Rainbow slow low",
 			Content: pendulumsystem.NewRainbowPendulumSystem(500, 1, -1.5, 0.0000001, "rgb"),
-			btn:     &widget.Clickable{},
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "ball flinger",
 			Content: balls.NewBalls(10),
-			btn:     &widget.Clickable{},
-		},
-		{
-			Name:    "Red",
-			Content: NewColorBox(ui.Red),
-			btn:     &widget.Clickable{},
+			Btn:     &widget.Clickable{},
 		},
 		{
 			Name:    "Purple",
-			Content: NewColorBox(ui.Purple),
-			btn:     &widget.Clickable{},
-		},
-		{
-			Name:    "blue",
-			Content: balls.NewBalls(20),
-			btn:     &widget.Clickable{},
-		},
-		{
-			Name:    "example 40",
-			Content: balls.NewBalls(40),
-			btn:     &widget.Clickable{},
-		},
-		{
-			Name:    "example 2",
-			Content: balls.NewBalls(2),
-			btn:     &widget.Clickable{},
+			Content: models.NewColorBox(ui.Purple),
+			Btn:     &widget.Clickable{},
 		},
 	}
 
-	menu[0].Selected = true
+	selected := menu[0]
 
 	return &Application{
+		selected:    &selected,
 		menu:        menu,
 		menuState:   "main",
-		theme:       material.NewTheme(),
-		splitVisual: SplitVisual{},
+		theme:       theme,
+		splitVisual: models.SplitVisual{},
 	}
 }
 
@@ -203,40 +186,26 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 			btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
 			btnList.Layout(gtx, len(application.menu), func(gtx layout.Context, i int) layout.Dimensions {
 				menuItem := &application.menu[i]
-				btn := material.Button(application.theme, menuItem.btn, menuItem.Name)
+				btn := material.Button(application.theme, menuItem.Btn, menuItem.Name)
 
-				if menuItem.btn.Pressed() && !menuItem.Selected {
-					fmt.Println("cliked happen", menuItem.btn)
-					menuItem.Selected = true
-					for j := range application.menu {
-						if i != j {
-							application.menu[j].Selected = false
-						}
-					}
+				if menuItem.Btn.Pressed() && menuItem != application.selected {
+					fmt.Println("cliked happen", menuItem.Btn)
+					application.selected = menuItem
+					application.menuState = "controls"
+
 				}
 
 				return ui.DefaultButton(gtx, &btn)
 			})
 		} else if application.menuState == "controls" {
-			var selected Content
-			for i := range application.menu {
-				if application.menu[i].Selected {
-					selected = application.menu[i].Content
-				}
-			}
-			selected.Menu(gtx, application.theme)
+			application.selected.Content.Menu(gtx, application.theme)
 		}
 
 		return btnHolder
 	})
 
 	contentWidget := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-		var content Content
-		for _, appl := range application.menu {
-			if appl.Selected {
-				content = appl.Content
-			}
-		}
+		content := application.selected.Content
 		content.Update(gtx, dt)
 		return content.Draw(gtx, image.Pt(gtx.Constraints.Max.X, gtx.Constraints.Max.Y))
 	})
