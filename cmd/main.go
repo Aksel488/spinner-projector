@@ -19,6 +19,7 @@ import (
 	"gioui.org/op/clip"
 	"gioui.org/op/paint"
 	"gioui.org/text"
+	"gioui.org/unit"
 	"gioui.org/widget/material"
 )
 
@@ -41,6 +42,8 @@ func main() {
 
 func runApplication(window *app.Window) error {
 	theme := material.NewTheme()
+	theme.FingerSize = unit.Dp(25)
+
 	windowState := NewState()
 	var ops op.Ops
 	application := apps.NewApplication(theme)

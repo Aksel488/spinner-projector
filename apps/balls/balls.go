@@ -45,8 +45,8 @@ func NewBalls(n int) *balls {
 	return b
 }
 
-func (s *balls) Menu(gtx layout.Context, theme *material.Theme) {
-
+func (s *balls) Menu(gtx layout.Context, theme *material.Theme) layout.Dimensions {
+	return layout.Dimensions{}
 }
 
 func (b *balls) AddBall(x, y, vx, vy float64) {

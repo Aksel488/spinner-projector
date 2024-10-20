@@ -25,8 +25,8 @@ func NewMultiPendulumSystem(numPendulums int) *MultiPendulumSystem {
 	}
 }
 
-func (s *MultiPendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
-
+func (s *MultiPendulumSystem) Menu(gtx layout.Context, theme *material.Theme) layout.Dimensions {
+	return layout.Dimensions{}
 }
 
 func (s *MultiPendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {

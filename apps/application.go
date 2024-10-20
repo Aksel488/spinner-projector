@@ -176,6 +176,7 @@ func (application *Application) Draw(gtx layout.Context, dt float64) layout.Dime
 
 	menuWidget := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 		size := image.Pt(200, gtx.Constraints.Max.Y)
+		gtx.Constraints.Max = size
 		btnHolder := layout.Dimensions{Size: size}
 
 		defer clip.Rect{Max: size}.Push(gtx.Ops).Pop()

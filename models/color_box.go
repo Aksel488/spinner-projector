@@ -25,8 +25,8 @@ func NewColorBox(color color.NRGBA) *ColorBox {
 	return &ColorBox{color: color, clicked: &cliked}
 }
 
-func (s *ColorBox) Menu(gtx layout.Context, theme *material.Theme) {
-
+func (s *ColorBox) Menu(gtx layout.Context, theme *material.Theme) layout.Dimensions {
+	return layout.Dimensions{}
 }
 
 func (cb *ColorBox) Draw(gtx layout.Context, size image.Point) layout.Dimensions {

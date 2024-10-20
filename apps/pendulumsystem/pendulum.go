@@ -1,7 +1,6 @@
 package pendulumsystem
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"math"
@@ -11,7 +10,6 @@ import (
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 )
@@ -37,21 +35,42 @@ func NewDoublePendulumSystem(offset1, offset2 float64, color color.NRGBA) *Doubl
 	pendulumSystem := &DoublePendulumSystem{}
 	pendulumSystem.inputs = inputs
 	pendulumSystem.Init()
+
 	pendulumSystem.drawTrail = false
 	pendulumSystem.g = 9.81
 
 	pendulumSystem.menu = []models.ControlMenuItem{
 		{
-			Btn:  &widget.Clickable{},
 			Name: "Trail",
-		},
-		{
 			Btn:  &widget.Clickable{},
-			Name: "Reset",
 		},
 		{
-			Btn:  &widget.Float{},
+			Name: "Reset",
+			Btn:  &widget.Clickable{},
+		},
+		{
 			Name: "Gravity",
+			Btn:  ui.NewLinearSlider(9.81, 1, 20),
+		},
+		{
+			Name: "Angle 1",
+			Btn:  ui.NewLinearSlider(float32(offset1), -math.Pi, math.Pi),
+		},
+		{
+			Name: "Angle 2",
+			Btn:  ui.NewLinearSlider(float32(offset2), -math.Pi, math.Pi),
+		},
+		{
+			Name: "log test",
+			Btn:  ui.NewLogSlider(0.001, 0.00001, 0.1),
+		},
+		{
+			Name: "log test 2",
+			Btn:  ui.NewLogSlider(500, 1, 10000),
+		},
+		{
+			Name: "log test 3",
+			Btn:  ui.NewLogSlider(1, 0.0001, 1000),
 		},
 	}
 
@@ -68,64 +87,93 @@ func (s *DoublePendulumSystem) handleBtnClick(btnName string) {
 	}
 }
 
-func (s *DoublePendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
+func (s *DoublePendulumSystem) Menu(gtx layout.Context, theme *material.Theme) layout.Dimensions {
 	btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
-	btnList.Layout(gtx, len(s.menu), func(gtx layout.Context, i int) layout.Dimensions {
-		menuBtn := s.menu[i]
-		switch menuBtn.Btn.(type) {
-		case *widget.Clickable:
-			clickable := menuBtn.Btn.(*widget.Clickable)
-			btn := material.Button(theme, clickable, menuBtn.Name)
 
-			if clickable.Clicked(gtx) {
-				s.handleBtnClick(menuBtn.Name)
-			}
+	return layout.Flex{
+		Axis:      layout.Vertical,
+		Alignment: layout.Middle,
+	}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return btnList.Layout(gtx, len(s.menu), func(gtx layout.Context, i int) layout.Dimensions {
+				menuBtn := s.menu[i]
+				switch menuBtn.Btn.(type) {
+				case *widget.Clickable:
+					clickable := menuBtn.Btn.(*widget.Clickable)
+					btn := material.Button(theme, clickable, menuBtn.Name)
 
-			return ui.DefaultButton(gtx, &btn)
-		case *widget.Float:
-			slider := menuBtn.Btn.(*widget.Float)
+					if clickable.Clicked(gtx) {
+						s.handleBtnClick(menuBtn.Name)
+					}
 
-			if menuBtn.Name == "Gravity" {
-				s.g = float64(slider.Value) * 9.81
-			}
+					return ui.DefaultButton(gtx, &btn)
+				case ui.Slider:
+					slider := menuBtn.Btn.(ui.Slider)
 
-			// sliderStyle := material.Slider(theme, slider)
-			// return ui.DefaultSlider(gtx, &sliderStyle)
+					if menuBtn.Name == "Gravity" {
+						s.g = float64(slider.Value())
+					} else if menuBtn.Name == "Angle 1" {
+						s.inputs.offset1 = float64(slider.Value())
+						if slider.GetFloat().Dragging() {
+							s.Init()
+						}
+					} else if menuBtn.Name == "Angle 2" {
+						s.inputs.offset2 = float64(slider.Value())
+						if slider.GetFloat().Dragging() {
+							s.Init()
+						}
+					}
 
-			return layout.Flex{
-				Axis:      layout.Vertical,
-				Alignment: layout.Middle,
-			}.Layout(gtx,
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return layout.Inset{
-						Top:   unit.Dp(20),
-						Left:  unit.Dp(20),
-						Right: unit.Dp(20),
-					}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						gtx.Constraints.Max.X = 200
-						// Slider Layout
-						sliderStyle := material.Slider(theme, slider).Layout(gtx)
-						// sliderStyle.Baseline = 20
-						return sliderStyle
-					})
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					// Show current slider value
-					label := material.H5(theme, "Value: "+fmt.Sprintf("%.2f", slider.Value*9.81))
-					label.Color = ui.White
-					return label.Layout(gtx)
-				}),
-			)
-
-		default:
-			btnText := material.H5(theme, menuBtn.Name)
-			btnText.Color = color.NRGBA{G: 200, A: 255}
-			// fpsDisplayText.Alignment = text.Middle
-			dims := btnText.Layout(gtx)
-			dims.Size = image.Pt(150, 50)
-			return dims
-		}
-	})
+					return slider.Layout(gtx, theme, menuBtn.Name)
+				default:
+					btnText := material.Body1(theme, menuBtn.Name+" (NI)")
+					btnText.Color = color.NRGBA{R: 200, A: 255}
+					dims := btnText.Layout(gtx)
+					return dims
+				}
+			})
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			// pendulum 1 settings
+			return layout.Inset{
+				Top: 20,
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{
+					Axis:      layout.Vertical,
+					Alignment: layout.Middle,
+				}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.H6(theme, "Inner line")
+						label.Color = ui.White
+						return label.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return s.p1.Menu(gtx, theme)
+					}),
+				)
+			})
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			// pendulum 2 settings
+			return layout.Inset{
+				Top: 20,
+			}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Flex{
+					Axis:      layout.Vertical,
+					Alignment: layout.Middle,
+				}.Layout(gtx,
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						label := material.H6(theme, "Outer line")
+						label.Color = ui.White
+						return label.Layout(gtx)
+					}),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return s.p2.Menu(gtx, theme)
+					}),
+				)
+			})
+		}),
+	)
 }
 
 func (s *DoublePendulumSystem) Init() {
@@ -164,8 +212,8 @@ func (s *DoublePendulumSystem) Update(gtx layout.Context, dt float64) {
 	av2 := s.p2.angleVel
 	m1 := s.p1.m
 	m2 := s.p2.m
-	l1 := 10.0
-	l2 := 10.0
+	l1 := 1.0
+	l2 := 1.0
 
 	mass1 := -s.g * (2*m1 + m2) * math.Sin(a1)
 	mass2 := -m2 * s.g * math.Sin(a1-2*a2)
@@ -206,23 +254,62 @@ type pendulum struct {
 	r        float64
 	m        float64
 	color    color.NRGBA
+	menu     []models.ControlMenuItem
 }
 
 func NewPendulum(x, y, angle float64, color color.NRGBA) *pendulum {
-	return &pendulum{
+	pendulum := &pendulum{
 		px:       x,
 		py:       y,
 		angle:    angle,
 		angleVel: 0,
-		r:        200,
-		m:        1,
+		r:        40,
+		m:        5,
 		color:    color,
 	}
+
+	pendulum.menu = []models.ControlMenuItem{
+		{
+			Name: "Length",
+			Btn:  ui.NewLinearSlider(40, 10, 100),
+		},
+		{
+			Name: "Mass",
+			Btn:  ui.NewLinearSlider(5, 1, 10),
+		},
+	}
+
+	return pendulum
+}
+
+func (s *pendulum) Menu(gtx layout.Context, theme *material.Theme) layout.Dimensions {
+	btnList := layout.List{Axis: layout.Vertical, Alignment: layout.Baseline}
+	return btnList.Layout(gtx, len(s.menu), func(gtx layout.Context, i int) layout.Dimensions {
+		menuBtn := s.menu[i]
+		switch menuBtn.Btn.(type) {
+		case ui.Slider:
+			slider := menuBtn.Btn.(ui.Slider)
+
+			if menuBtn.Name == "Length" {
+				s.r = float64(slider.Value())
+			} else if menuBtn.Name == "Mass" {
+				s.m = float64(slider.Value())
+			}
+
+			return slider.Layout(gtx, theme, menuBtn.Name)
+		default:
+			btnText := material.Body1(theme, menuBtn.Name+" (NI)")
+			btnText.Color = color.NRGBA{R: 200, A: 255}
+			dims := btnText.Layout(gtx)
+			return dims
+		}
+	})
 }
 
 func (p *pendulum) getEnd() (x, y float64) {
-	x = p.r*math.Cos(p.angle+math.Pi/2) + p.px
-	y = p.r*math.Sin(p.angle+math.Pi/2) + p.py
+	length := p.r * p.m
+	x = length*math.Cos(p.angle+math.Pi/2) + p.px
+	y = length*math.Sin(p.angle+math.Pi/2) + p.py
 	return x, y
 }
 

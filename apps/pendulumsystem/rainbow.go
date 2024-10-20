@@ -35,8 +35,8 @@ func NewRainbowPendulumSystem(numPendulums int, innerAngle, outerAngle, space fl
 	}
 }
 
-func (s *RainbowPendulumSystem) Menu(gtx layout.Context, theme *material.Theme) {
-
+func (s *RainbowPendulumSystem) Menu(gtx layout.Context, theme *material.Theme) layout.Dimensions {
+	return layout.Dimensions{}
 }
 
 func (s *RainbowPendulumSystem) Draw(gtx layout.Context, size image.Point) layout.Dimensions {
